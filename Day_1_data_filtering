@@ -75,3 +75,28 @@ data7<- read.delim("stg_bgdt_cust_purc_lf.txt", header=T, sep="\t")
 data7$TRANSACTION_DT<-as.Date(dmy_hm(data7$TRANSACTION_DT ))
 data7 <-  data7[(data7$TRANSACTION_DT>"2011-12-25") ,]
 
+
+
+##### MERGE ON CONTACT_WID
+
+mdata1<- data1
+mdata2<- data2
+mdata3<- data3
+mdata4<- data4
+mdata5<- data5
+mdata6<-data6
+mdata7<- data7
+names(mdata1)
+#merging data1 and data2
+mergedata<- merge(mdata1,mdata2, by="CONTACT_WID")
+#merging 1st merge and data3
+mergedata<- merge(mergedata,mdata3, by="CONTACT_WID")
+#merging 2nd merge and data 4
+mergedata<- merge(mergedata,mdata4, by="CONTACT_WID")
+#merging 3rd merge and data 5
+mergedata<- merge(mergedata,mdata5, by="CONTACT_WID")
+#merging 4th merge and data 6
+mergedata<- merge(mergedata,mdata6, by="CONTACT_WID")
+#merging 5th merge and data 7
+mergedata<- merge(mergedata,mdata7, by="CONTACT_WID")
+
