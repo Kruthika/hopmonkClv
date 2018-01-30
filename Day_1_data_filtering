@@ -6,6 +6,10 @@ data$X_NOMIN_DT<-as.Date(mdy_hm(data$X_NOMIN_D ))
 
 data<-data[( data$X_NOMIN_DT > "2012-12-24" & data$X_NOMIN_DT < "2013-01-27") & (data$X_EDW_INTEGRATION_ID == "kutti" | data$X_EDW_INTEGRATION_ID == "PAD2"),]
 
+## obtaining unique value for the customer data to avoid duplicacy  
+data1<-data %>% distinct(data,CONTACT_WID, .keep_all = TRUE)
+
+
 
 #reading and processing cust_app_dwnld.txt
 data2t <- read.delim("stg_bgdt_cust_app_dwnld.txt", header=T, sep="\t")
