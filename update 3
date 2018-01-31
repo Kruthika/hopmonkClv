@@ -1,0 +1,214 @@
+###There were NAs in most data sets and I could not perform any operations on existing variables.
+
+There are few changes made on previous code as well
+#reading and processing ownr.txt
+data<-read.delim("stg_bgdt_cust_ownr.txt", header =T,sep="\t")
+
+names(data)
+
+require(lubridate)
+data$X_NOMIN_DT<-as.Date(mdy_hm(data$X_NOMIN_DT))
+
+data<-data[( data$X_NOMIN_DT > "2012-12-24" & data$X_NOMIN_DT < "2013-01-27") & (data$X_EDW_INTEGRATION_ID == "kutti" | data$X_EDW_INTEGRATION_ID == "PAD2"),]
+
+obtaining unique value for the customer data to avoid duplicacy
+data1<-data %>% distinct(data,CONTACT_WID, .keep_all = TRUE)
+
+data1<-na.omit(data1)
+sum(is.na(data1))
+
+ #e<-merged %>% distinct(merged,CONTACT_WID, .keep_all = TRUE)
+#reading and processing cust_app_dwnld.txt
+data2t <- read.delim("stg_bgdt_cust_app_dwnld.txt", header=T, sep="\t")
+#NOMIN_DT > "2011-12-25"
+data2<- data2t
+
+colnames(data2)[which(names(data2) == "NOMIN_DT")] <- "DEVICE_DESCRI"
+colnames(data2)[which(names(data2) == "DEVICE_DESCR")] <- "NOMIN_DT"
+colnames(data2)[which(names(data2) == "DEVICE_DESCRI")] <- "DEVICE_DESCR"
+colnames(data2)[which(names(data2) == "ITEM_NUMBER")] <- "ITEM_NAMEE"
+colnames(data2)[which(names(data2) == "ITEM_NAME")] <- "ITEM_NUMBER"
+colnames(data2)[which(names(data2) == "ITEM_NAMEE")] <- "ITEM_NAME"
+
+data2$NOMIN_DT<- as.Date(mdy_hm(data2$NOMIN_DT ))
+
+data2 <- data2[(data2$NOMIN_DT > "2011-12-25"),]
+
+data2<-na.omit(data2)
+sum(is.na(data2))
+#reading and processing cust_chld.txt
+
+data3<- read.delim("stg_bgdt_cust_chld.txt", header=T, sep="\t")
+
+colnames(data3)[which(names(data3) == "X")] <- "CHILD_CREATION_DATEE"
+colnames(data3)[which(names(data3) == "SEX_MF_CODE")] <- "CHILD_AGE"
+colnames(data3)[which(names(data3) == "X_GRADE")] <- "SEX_MF_CODE"
+colnames(data3)[which(names(data3) == "CHILD_CREATION_DATE")] <- "X_GRADE"
+colnames(data3)[which(names(data3) == "CHILD_CREATION_DATEE")] <- "CHILD_CREATION_DATE"
+data3<-na.omit(data3)
+sum(is.na(data3))
+#library(tidyr)
+#data3 %>% drop_na()
+
+data3$CHILD_BIRTH_DATE<-as.Date(mdy_hm(data3$CHILD_BIRTH_DATE ))
+
+#c<-apply(na.omit(data3),2,max); ## this will remove the NA rows from the data frame and then calculate the max values
+
+#na.omit(data3)
+#sum(is.na(data3))
+#on hold
+#data3 <- data2[(data3$CHILD_BIRTH_DATE > "2011-12-25"),]
+
+##reading and processing cust_gam_actv.txt
+
+data4<- read.delim("stg_bgdt_cust_gam_actv.csv", header=T, sep=",")
+
+data4$TITLE_NOMIN_DT<-as.Date(dmy(data4$TITLE_NOMIN_DT ))
+?as.Date(dmy)
+data4 <- data4[(data4$TITLE_NOMIN_DT > "2011-12-25"),]
+
+data4<-na.omit(data4)
+sum(is.na(data4))
+##reading and processing cust_gam_play_cart.txt
+data5<- read.delim("stg_bgdt_cust_gam_play_cart.txt", header=T, sep="\t")
+
+data5$TITLE_NOMIN_DT<-as.Date(dmy_hm(data5$TITLE_NOMIN_DT ))
+
+data5 <- data5[(data5$TITLE_NOMIN_DT > "2011-12-25" & data5$TITLE_NOMIN_DT < "2013-04-11"),]
+data5<-na.omit(data5)
+sum(is.na(data5))
+
+reading and processing cust_purc_app.txt
+data6<- read.delim("stg_bgdt_cust_purc_app.txt", header=T, sep="\t")
+data6$TRANSACTION_DATE<-as.Date(mdy_hm(data6$TRANSACTION_DATE ))
+data6 <- data6[(data6$TRANSACTION_DATE > "2011-12-25") ,]
+
+data6<-na.omit(data6)
+sum(is.na(data6))
+
+reading and processing cust_purc_lf.txt
+data7<- read.delim("stg_bgdt_cust_purc_lf.txt", header=T, sep="\t")
+data7$TRANSACTION_DT<-as.Date(dmy_hm(data7$TRANSACTION_DT ))
+data7 <- data7[(data7$TRANSACTION_DT>"2011-12-25") ,]
+
+data7<-na.omit(data7)
+sum(is.na(data7))
+names(data)
+
+#########31st Jan 2018
+############################ derived variables
+NominationDate<- data.frame( tapply(data1$CONTACT_WID, data1$X_NOMIN_DT, min))
+MaxChildAge<-data.frame( tapply(data3$CONTACT_WID, data3$CHILD_AGE, max))
+MinChildAge<-data.frame( tapply(data3$CONTACT_WID, data3$CHILD_AGE, min))
+TenureDays<-data.frame(OveralllastTransaction - data1$X_NOMIN_DT)
+ChildAgeRange<- MaxChildAge - MinChildAge
+Country<- data1$X_CNTRY
+CONTACT_WID<- data1$CONTACT_WID
+library(sqldf)
+three_var<-sqldf("select CONTACT_WID,X_CNTRY from data1")
+NominationDate<-data1[,1:2]
+NominationDate <- NominationDate %>% group_by(CONTACT_WID) %>% summarise(min(X_NOMIN_DT))
+three_var<-merge(x=three_var,y=NominationDate,all=T)
+#three_var<- merge(three_var,MaxChildAge,all=T)
+#three_var<-merge(three_var,MinChildAge,all=T)
+four_var<-merge(x=three_var,y=ChildAgeRange,all=T)
+
+two_var<-sqldf("select CONTACT_WID,CHILD_AGE from data3")
+CHILD_AGE1<-data1[,1:8]
+<- NominationDate %>% group_by(CONTACT_WID) %>% summarise(min(X_NOMIN_DT))
+three_var<-merge(x=three_var,y=NominationDate,all=T)
+
+######### UNITS##########
+#######sum(UNITS) from STG_BGDT_CUST_PURC_LF.txt + sum(UNITS) from stg_bgdt_cust_purc_app.txt
+M11<-merge(M,ChildAgeRange , by="CONTACT_WID", all = T)
+
+?tapply
+Units<- data7$UNITS + data6$UNITS
+dim(data7$UNITS)
+
+a<- data.frame(data1$CONTACT_WID, data1$X_CNTRY)
+
+M<-merge(MaxChildAge,MinChildAge)
+M1<- fulljoin(M,ChildAgeRange)
+MD<- data.frame(,MaxChildAge,MinChildAge)
+######NominationDate -----stg_bgdt_cust_ownr.txt----min(X_NOMIN_DT)
+nomindate1<-min(data1$X_NOMIN_DT)
+dim(a)
+dim(NominationDate)
+dim(MaxChildAge)
+?fulljoin
+
+############I met a friend who works on Data and figured out that using sql and this operation can save lots of time in extracting and performing operations on variables.
+####### sqldf
+
+#Units
+tempUnits <- sqldf("SELECT A.CONTACT_WID,SUM(A.UNITS+B.UNITS) FROM data6 A LEFT JOIN
+data7 B ON A.CONTACT_WID = B.CONTACT_WID GROUP BY A.CONTACT_WID")
+Units <- sqldf("SELECT CONTACT_WID, SUM(UNITS) FROM data6 GROUP BY CONTACT_WID")
+
+#Units7
+tempUnits7 <- sqldf("SELECT A.CONTACT_WID,SUM(A.UNITS+B.UNITS) FROM data6 A LEFT JOIN
+data7 B ON A.CONTACT_WID = B.CONTACT_WID GROUP BY A.CONTACT_WID")
+Units7 <- sqldf("SELECT CONTACT_WID, SUM(UNITS) FROM data6 GROUP BY CONTACT_WID")
+
+########### the below went waste###########
+
+##stg_bgdt_cust_chld.txt ,
+#max_child_age<-data.frame( tapply(data3$CONTACT_WID, data3$CHILD_AGE, max))
+##Diffrence between the variables : MaxChildAge and MinChildAge
+#ChildAgeRange<- max_child_age - min_child_age
+
+ ######### UNITS##########
+#######sum(UNITS) from STG_BGDT_CUST_PURC_LF.txt + sum(UNITS) from stg_bgdt_cust_purc_app.txt
+Units<-data.frame(sum(data7$UNITS) + sum(data6$UNITS) )
+U = (data7$UNITS) + (data6$UNITS)
+
+str(data6$UNITS)
+str(data7$UNITS)
+####### Units7- sum(UNITS) from STG_BGDT_CUST_PURC_LF.txt + sum(UNITS) from stg_bgdt_cust_purc_app.txt
+####TRANSACTION_DT < "2012-01-02"
+Units7LF <- data7[(data7$TRANSACTION_DT < "2012-01-02") ,]
+Units7app <- data6[(data6$TRANSACTION_DATE < "2012-01-02") ,]
+
+########
+Units7<-sum(Units7LF$UNITS) + sum(Units7app$UNITS)
+
+######### Units30- sum(UNITS) from STG_BGDT_CUST_PURC_LF.txt + sum(UNITS) from stg_bgdt_cust_purc_app.txt
+#####TRANSACTION_DT < "2012-01-26"
+
+Units30LF<- data7[(data7$TRANSACTION_DT < "2012-01-26") ,]
+Units30app<- data6[(data6$TRANSACTION_DATE < "2012-01-26") ,]
+
+Units30<-sum(Units30LF$UNITS) + sum(Units30app$UNITS)
+#U30<- Units30LF$UNITS + Units30app$UNITS
+
+######### Units90- sum(UNITS) from STG_BGDT_CUST_PURC_LF.txt + sum(UNITS) from stg_bgdt_cust_purc_app.txt
+#####TRANSACTION_DT < "2012-03-26"
+Units90LF<- data7[(data7$TRANSACTION_DT < "2012-03-26") ,]
+Units90app<- data6[(data6$TRANSACTION_DATE < "2012-03-26") ,]
+
+Units90<-sum(Units90LF$UNITS) + sum(Units90app$UNITS)
+
+######### Units180- sum(UNITS) from STG_BGDT_CUST_PURC_LF.txt + sum(UNITS) from stg_bgdt_cust_purc_app.txt
+#####TRANSACTION_DT < "2012-06-23"
+Units180LF<- data7[(data7$TRANSACTION_DT < "2012-06-23") ,]
+Units180app<- data6[(data6$TRANSACTION_DATE < "2012-06-23") ,]
+
+Units180<-sum(Units180LF$UNITS) + sum(Units180app$UNITS)
+
+######### Units360- sum(UNITS) from STG_BGDT_CUST_PURC_LF.txt + sum(UNITS) from stg_bgdt_cust_purc_app.txt
+#####TRANSACTION_DT < "2012-12-26"
+Units360LF<- data7[(data7$TRANSACTION_DT < "2012-12-26") ,]
+Units360app<- data6[(data6$TRANSACTION_DATE < "2012-12-26") ,]
+
+Units360<-sum(Units360LF$UNITS) + sum(Units360app$UNITS)
+
+########OveralllastTransaction----STG_BGDT_CUST_PURC_LF.txt---max(TRANSACTION_DT)
+
+OveralllastTransaction <- max(data7$TRANSACTION_DT)
+
+OveralllastTransaction
+#######TenureDays ---- OveralllastTransaction - NominationDate ---Finding the overalllast transaction date(if missing none is put 0
+TenureDays<-data.frame(OveralllastTransaction - data1$X_NOMIN_DT)
+finaldf<-data1
+merge(finaldf,TenureDays)
