@@ -1,0 +1,54 @@
+###############      FavoriteSource
+FS<- data6
+levels(FS$SOURCE_OF_PURCHASE)
+
+df1 <- data.frame(id = 1:3, SOURCE_OF_PURCHASE = LF CONNECT WEB)
+
+library(caret)
+
+for(level in unique(FS$SOURCE_OF_PURCHASE)){
+  FS[paste("dummy", level, sep = "_")] <- ifelse(FS$SOURCE_OF_PURCHASE == level,1,0)
+}
+names(df1)
+totalfreq <- sqldf("SELECT CONTACT_WID,count(SOURCE_OF_PURCHASE) FROM df1 GROUP BY CONTACT_WID")
+colnames(totalfreq)[which(names(totalfreq) == "count(SOURCE_OF_PURCHASE)")] <- "totalpurcfreq"
+
+ifreqlf<- sqldf("SELECT CONTACT_WID, min(FS_LF_CONNECT),min(TRANSACTION_DATE) ,sum(FS_LF_CONNECT) FROM df1 GROUP BY CONTACT_WID")
+
+ifreqweb<- sqldf("SELECT CONTACT_WID, min(FS_WEB),max(TRANSACTION_DATE), sum(FS_WEB) FROM df1 GROUP BY CONTACT_WID")
+
+colnames(ifreqlf)[which(names(ifreqlf) == "sum(FS_LF_CONNECT)")] <- "frequencylfpurc"
+
+colnames(ifreqweb)[which(names(ifreqweb) == "sum(FS_WEB)")] <- "frequencywebpurc"
+
+favs_lf<-sqldf("SELECT A.CONTACT_WID,A.totalpurcfreq % B.frequencylfpurc FROM totalfreq A LEFT JOIN 
+               ifreqlf B ON A.CONTACT_WID = B.CONTACT_WID GROUP BY A.CONTACT_WID")
+
+fav_lf<-data.frame(totalfreq$CONTACT_WID,ifreqlf$CONTACT_WID,totalfreq$totalpurcfreq,ifreqlf$frequencylfpurc, totalfreq$totalpurcfreq/ifreqlf$frequencylfpurc)
+fav_web <-data.frame(totalfreq$CONTACT_WID,ifreqweb$CONTACT_WID,totalfreq$totalpurcfreq,ifreqweb$frequencywebpurc,  totalfreq$totalpurcfreq/ifreqweb$frequencywebpurc)
+names(fav_lf)
+names(fav_web)
+colnames(fav_lf)[which(names(fav_lf) == "lf_per")] <- "lf_per"
+
+colnames(fav_web)[which(names(fav_web) == "%web")] <- "web_per"
+
+names(fav_w)
+
+fav_sou<-data.frame( fav_lf$totalfreq.CONTACT_WID, fav_lf$lf_per > fav_web$web_per )
+colnames(fav_sou)[which(names(fav_sou) == "fav_lf.totalfreq.CONTACT_WID")] <- "CONTACT_WID"
+colnames(fav_sou)[which(names(fav_sou) == "fav_lf.lf_per...fav_web.web_per")] <- "LF_TRUE"
+
+favourite_source <- sqldf("SELECT fav_lf.totalfreq.CONTACT_WID, (fav_lf.lf_per...fav_web.web_per == TRUE) FROM fav_sou GROUP BY CONTACT_WID")
+
+
+
+
+
+
+
+names(fav_sou)
+library(car)
+favourite_source<-recode(fav_sou$LF_TRUE,"c('TRUE')='LF';c('FALSE')='WEB'")
+favourite_source<- data.frame(fav_sou$CONTACT_WID,favourite_source)
+FavoriteSource<-favourite_source
+#############################
