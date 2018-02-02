@@ -143,3 +143,59 @@ rsq
  model <- naiveBayes(Class ~ ., data = )
  
  
+ 
+ 
+  ##### ERROR METRICS##############################
+ #The Log Loss
+ ll(actual, predicted)
+ 
+ # Mean Absolute Error
+ mae(actual, predicted)
+ 
+ 
+ #Mean Average Precision At K
+mapk(k, actual, predicted)
+        # k = max length of predicted sequence
+ 
+ 
+ #The Mean Log Loss
+logLoss(actual, predicted, distribution = "binomial")
+ 
+ 
+ #The Area Under The ROC
+auc(actual, predicted)
+
+   ###auc example
+  #### glmModel <- glm(y ~ ., data = testDF, family="binomial")
+  ### Preds <- predict(glmModel, type = 'response')
+  #### auc(testDF$y, Preds)
+ 
+ # The Classification Error
+ce(actual, predicted)
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ #The Mean Squared Error#'
+mse(actual, predicted)
+ 
+ 
+ 
+ #The Mean Squared Log Error
+msle(actual, predicted)
+ 
+ 
+
+ 
+# Root Mean Squared Error#'
+rmse(actual, predicted)
+ 
+ 
+#The Root Mean Squared Log Error
+rmsle(actual, predicted)
+ 
