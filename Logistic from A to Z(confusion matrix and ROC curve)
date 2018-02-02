@@ -13,8 +13,14 @@ model <- glm (DATA ~ .-ID, data = Ntrain, family = binomial)
 summary(model)
 predict <- predict(model, type = 'response')
 
+
 #confusion matrix
 table(Ntrain$DATA, predict > 0.5)
+    ########or
+confusionMatrix(data, reference, positive = NULL,
+                dnn = c("Prediction", "Reference"), prevalence = NULL,
+                mode = "sens_spec", ...)
+
 
 #ROCR Curve
 library(ROCR)
