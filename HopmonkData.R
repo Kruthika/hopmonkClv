@@ -3,6 +3,8 @@ rm(list=ls(all=TRUE))
 #DIY Set directory and read the data 
 setwd("/Users/kruthikapotlapally/Projects/CSE7302c_CUTe01_Exam-Files/hopmonkClv")
 
+###There were NAs in most data sets and I could not perform any operations on existing variables.
+
 #reading and processing ownr.txt
 data<-read.delim("~/Projects/CSE7302c_CUTe01_Exam-Files/hopmonkClv/data/stg_bgdt_cust_ownr.txt", header =T,sep="\t")
 
@@ -911,23 +913,69 @@ custAll <- sqldf("SELECT COALESCE(a.CONTACT_WID,b.CONTACT_WID) AS CONTACT_WID,
                  WHERE a.CONTACT_WID IS NULL")
 
 ##########Grouping by CONTACT_WID to get min and max Recency (6 columns)
-recencyCum <- sqldf("SELECT CONTACT_WID, OveralllastTransaction, 
-                     min(RecencyApp, RecencyLF, RecencyDown) AS minRecencyCum,  
-                     max(RecencyApp, RecencyLF, RecencyDown) AS maxRecencyCum,
-                     min(RecencyApp7, RecencyLF7, RecencyDown7) AS minRecencyCum7,  
-                     max(RecencyApp7, RecencyLF7, RecencyDown7) AS maxRecencyCum7,
-                     min(RecencyApp30, RecencyLF30, RecencyDown30) AS minRecencyCum30,  
-                     max(RecencyApp30, RecencyLF30, RecencyDown30) AS maxRecencyCum30,
-                     min(RecencyApp90, RecencyLF90, RecencyDown90) AS minRecencyCum90,  
-                     max(RecencyApp90, RecencyLF90, RecencyDown90) AS maxRecencyCum90,
-                     min(RecencyApp180, RecencyLF180, RecencyDown180) AS minRecencyCum180,  
-                     max(RecencyApp180, RecencyLF180, RecencyDown180) AS maxRecencyCum180,
-                     min(RecencyApp360, RecencyLF360, RecencyDown360) AS minRecencyCum360,  
-                     max(RecencyApp360, RecencyLF360, RecencyDown360) AS maxRecencyCum360
-                     FROM custAll 
-                     group by CONTACT_WID")
 
-
+recencyCum <- sqldf("SELECT CONTACT_WID, OveralllastTransaction,
+                    CASE
+                     WHEN RecencyApp < RecencyLF AND RecencyApp < RecencyDown THEN  RecencyApp
+                     WHEN RecencyLF < RecencyApp AND RecencyLF < RecencyDown THEN RecencyLF
+                     ELSE RecencyDown
+                     END AS minRecencyCum,
+                     CASE
+                     WHEN RecencyApp7 < RecencyLF7 AND RecencyApp7 < RecencyDown7 THEN  RecencyApp7
+                    WHEN RecencyLF7 < RecencyApp7 AND RecencyLF7 < RecencyDown7 THEN RecencyLF7
+                    ELSE RecencyDown7
+                    END AS minRecencyCum7,
+                     CASE
+                     WHEN RecencyApp30 < RecencyLF30 AND RecencyApp30 < RecencyDown30 THEN  RecencyApp30
+                     WHEN RecencyLF30 < RecencyApp30 AND RecencyLF30 < RecencyDown30 THEN RecencyLF30
+                     ELSE RecencyDown
+                     END AS minRecencyCum30,
+                     CASE
+                     WHEN RecencyApp90 < RecencyLF90 AND RecencyApp90 < RecencyDown90 THEN  RecencyApp90
+                    WHEN RecencyLF90 < RecencyApp90 AND RecencyLF90 < RecencyDown90 THEN RecencyLF90
+                    ELSE RecencyDown90
+                    END AS minRecencyCum90,
+                     CASE
+                     WHEN RecencyApp180 < RecencyLF180 AND RecencyApp180 < RecencyDown180 THEN  RecencyApp180
+                     WHEN RecencyLF180 < RecencyApp180 AND RecencyLF180 < RecencyDown180 THEN RecencyLF180
+                     ELSE RecencyDown180
+                     END AS minRecencyCum180,
+                     CASE
+                     WHEN RecencyApp360 < RecencyLF360 AND RecencyApp360 < RecencyDown360 THEN  RecencyApp360
+                    WHEN RecencyLF360 < RecencyApp360 AND RecencyLF360 < RecencyDown360 THEN RecencyLF360
+                    ELSE RecencyDown360
+                    END AS minRecencyCum360,
+                     CASE
+                     WHEN RecencyApp > RecencyLF AND RecencyApp > RecencyDown THEN  RecencyApp
+                     WHEN RecencyLF > RecencyApp AND RecencyLF > RecencyDown THEN RecencyLF
+                     ELSE RecencyDown
+                     END AS maxRecencyCum,
+                     CASE
+                     WHEN RecencyApp7 > RecencyLF7 AND RecencyApp7 > RecencyDown7 THEN  RecencyApp7
+                    WHEN RecencyLF7 > RecencyApp7 AND RecencyLF7 > RecencyDown7 THEN RecencyLF7
+                    ELSE RecencyDown7
+                    END AS maxRecencyCum7,
+                     CASE
+                     WHEN RecencyApp30 > RecencyLF30 AND RecencyApp30 > RecencyDown30 THEN  RecencyApp30
+                     WHEN RecencyLF30 > RecencyApp30 AND RecencyLF30 > RecencyDown30 THEN RecencyLF30
+                     ELSE RecencyDown30
+                     END AS maxRecencyCum30,
+                     CASE
+                     WHEN RecencyApp90 > RecencyLF90 AND RecencyApp90 > RecencyDown90 THEN  RecencyApp90
+                     WHEN RecencyLF90 > RecencyApp90 AND RecencyLF90 > RecencyDown90 THEN RecencyLF90
+                     ELSE RecencyDown90
+                     END AS maxRecencyCum90,
+                     CASE
+                     WHEN RecencyApp180 > RecencyLF180 AND RecencyApp180 > RecencyDown180 THEN  RecencyApp180
+                    WHEN RecencyLF180 > RecencyApp180 AND RecencyLF180 > RecencyDown180 THEN RecencyLF180
+                    ELSE RecencyDown180
+                    END AS maxRecencyCum180,
+                     CASE
+                     WHEN RecencyApp360 > RecencyLF360 AND RecencyApp360 > RecencyDown360 THEN  RecencyApp360
+                    WHEN RecencyLF360 > RecencyApp360 AND RecencyLF360 > RecencyDown360 THEN RecencyLF360
+                    ELSE RecencyDown360
+                    END AS maxRecencyCum360
+                     FROM custAll")
 
 ###############################################################################################
 
