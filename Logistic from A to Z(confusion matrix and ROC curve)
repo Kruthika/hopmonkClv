@@ -1,0 +1,28 @@
+install.packages('caTools')
+library(caTools)
+
+set.seed(88)
+split <- sample.split(train$DATA, SplitRatio = 0.75)
+
+#get training and test data
+Ntrain <- subset(train, split == TRUE)
+Ntest <- subset(train, split == FALSE)
+
+#logistic regression model
+model <- glm (DATA ~ .-ID, data = Ntrain, family = binomial)
+summary(model)
+predict <- predict(model, type = 'response')
+
+#confusion matrix
+table(Ntrain$DATA, predict > 0.5)
+
+#ROCR Curve
+library(ROCR)
+ROCRpred <- prediction(predict, Ntrain$DATA)
+ROCRperf <- performance(ROCRpred, 'tpr','fpr')
+plot(ROCRperf, colorize = TRUE, text.adj = c(-0.2,1.7))
+
+#plot glm
+library(ggplot2)
+ggplot(Ntrain, aes(x=Rating, y=DATA)) + geom_point() + 
+  stat_smooth(method="glm", family="binomial", se=FALSE)
