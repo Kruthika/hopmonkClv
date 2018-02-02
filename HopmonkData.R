@@ -3,8 +3,6 @@ rm(list=ls(all=TRUE))
 #DIY Set directory and read the data 
 setwd("/Users/kruthikapotlapally/Projects/CSE7302c_CUTe01_Exam-Files/hopmonkClv")
 
-###There were NAs in most data sets and I could not perform any operations on existing variables.
-
 #reading and processing ownr.txt
 data<-read.delim("~/Projects/CSE7302c_CUTe01_Exam-Files/hopmonkClv/data/stg_bgdt_cust_ownr.txt", header =T,sep="\t")
 
@@ -185,9 +183,243 @@ custPurcApp <- sqldf("select CONTACT_WID, MAX(TRANSACTION_DATE) AS OveralllastTr
     (julianday('2012-01-26') - julianday(MAX(TRANSACTION_DATE))) AS RecencyApp30,
     (julianday('2012-03-23') - julianday(MAX(TRANSACTION_DATE))) AS RecencyApp90,
     (julianday('2012-06-23') - julianday(MAX(TRANSACTION_DATE))) AS RecencyApp180,
-    (julianday('2012-12-26') - julianday(MAX(TRANSACTION_DATE))) AS RecencyApp360
+    (julianday('2012-12-26') - julianday(MAX(TRANSACTION_DATE))) AS RecencyApp360,
+    SUM(CASE
+    WHEN SOURCE_OF_PURCHASE NOTNULL THEN 1
+    ELSE 0
+    END) AS total_source_purchase,
+    SUM(CASE 
+    WHEN (TRANSACTION_DATE < '2012-01-02' AND SOURCE_OF_PURCHASE NOTNULL) THEN 1
+    ELSE 0
+    END) AS total_source_purchase7,
+    SUM(CASE 
+    WHEN (TRANSACTION_DATE < '2012-01-26' AND SOURCE_OF_PURCHASE NOTNULL)  THEN 1
+    ELSE 0
+    END) AS total_source_purchase30,
+    SUM(CASE 
+    WHEN (TRANSACTION_DATE < '2012-03-26' AND SOURCE_OF_PURCHASE NOTNULL) THEN 1
+    ELSE 0
+    END) AS total_source_purchase90,
+    SUM(CASE 
+    WHEN (TRANSACTION_DATE < '2012-06-23' AND SOURCE_OF_PURCHASE NOTNULL) THEN 1
+    ELSE 0
+    END) AS total_source_purchase180,
+    SUM(CASE 
+    WHEN (TRANSACTION_DATE < '2012-12-26' AND SOURCE_OF_PURCHASE NOTNULL)  THEN 1
+    ELSE 0
+    END) AS total_source_purchase360,
+    SUM(CASE
+    WHEN CHANNEL_DESCRIPTION NOTNULL THEN 1
+                     ELSE 0
+                     END) AS CHANNEL_DESCRIPTION,
+                     SUM(CASE 
+                     WHEN (TRANSACTION_DATE < '2012-01-02' AND CHANNEL_DESCRIPTION NOTNULL) THEN 1
+                     ELSE 0
+                     END) AS CHANNEL_DESCRIPTION7,
+                     SUM(CASE 
+                     WHEN (TRANSACTION_DATE < '2012-01-26' AND CHANNEL_DESCRIPTION NOTNULL)  THEN 1
+                     ELSE 0
+                     END) AS CHANNEL_DESCRIPTION30,
+                     SUM(CASE 
+                     WHEN (TRANSACTION_DATE < '2012-03-26' AND CHANNEL_DESCRIPTION NOTNULL) THEN 1
+                     ELSE 0
+                     END) AS CHANNEL_DESCRIPTION90,
+                     SUM(CASE 
+                     WHEN (TRANSACTION_DATE < '2012-06-23' AND CHANNEL_DESCRIPTION NOTNULL) THEN 1
+                     ELSE 0
+                     END) AS CHANNEL_DESCRIPTION180,
+                     SUM(CASE 
+                     WHEN (TRANSACTION_DATE < '2012-12-26' AND CHANNEL_DESCRIPTION NOTNULL)  THEN 1
+                     ELSE 0
+                     END) AS CHANNEL_DESCRIPTION360
     FROM data6
     group by CONTACT_WID")
+
+PurcAppSource <- sqldf(" SELECT CONTACT_WID, SOURCE_OF_PURCHASE, SUM(CASE
+                              WHEN SOURCE_OF_PURCHASE NOTNULL THEN 1
+                              ELSE 0
+                              END) AS source_purchase,
+                              SUM(CASE 
+                              WHEN (TRANSACTION_DATE < '2012-01-02' AND SOURCE_OF_PURCHASE NOTNULL) THEN 1
+                              ELSE 0
+                              END) AS source_purchase7,
+                              SUM(CASE 
+                              WHEN (TRANSACTION_DATE < '2012-01-26' AND SOURCE_OF_PURCHASE NOTNULL)  THEN 1
+                              ELSE 0
+                              END) AS source_purchase30,
+                              SUM(CASE 
+                              WHEN (TRANSACTION_DATE < '2012-03-26' AND SOURCE_OF_PURCHASE NOTNULL) THEN 1
+                              ELSE 0
+                              END) AS source_purchase90,
+                              SUM(CASE 
+                              WHEN (TRANSACTION_DATE < '2012-06-23' AND SOURCE_OF_PURCHASE NOTNULL) THEN 1
+                              ELSE 0
+                              END) AS source_purchase180,
+                              SUM(CASE 
+                              WHEN (TRANSACTION_DATE < '2012-12-26' AND SOURCE_OF_PURCHASE NOTNULL)  THEN 1
+                              ELSE 0
+                              END) AS source_purchase360
+                              FROM data6
+                              group by CONTACT_WID, SOURCE_OF_PURCHASE")
+FavSource <- sqldf("SELECT a.CONTACT_WID, a.SOURCE_OF_PURCHASE,
+                   CASE 
+                   WHEN source_purchase > 0.5 * total_source_purchase THEN 1
+                   ELSE NULL
+                   END AS FavSource,
+                   CASE 
+                   WHEN source_purchase7 > 0.5 * total_source_purchase7 THEN 1
+                   ELSE NULL
+                   END AS FavSource7,
+                   CASE 
+                   WHEN source_purchase30 > 0.5 * total_source_purchase30 THEN 1
+                   ELSE NULL
+                   END AS FavSource30,
+                   CASE 
+                   WHEN source_purchase90 > 0.5 * total_source_purchase90 THEN 1
+                   ELSE NULL
+                   END AS FavSource90,
+                   CASE 
+                   WHEN source_purchase180 > 0.5 * total_source_purchase180 THEN 1
+                   ELSE NULL
+                   END AS FavSource180,
+                   CASE
+                   WHEN source_purchase360 > 0.5 * total_source_purchase180 THEN 1
+                   ELSE NULL
+                   END AS FavSource360
+                   FROM PurcAppSource a
+                   LEFT JOIN custPurcApp b on a.CONTACT_WID = b.CONTACT_WID")
+
+FavSource1 <- sqldf("SELECT CONTACT_WID, 
+                     CASE
+                     WHEN FavSource = 1 THEN SOURCE_OF_PURCHASE
+                     ELSE NULL
+                     END AS FavSourceBin,
+                     CASE
+                     WHEN FavSource7 = 1 THEN SOURCE_OF_PURCHASE
+                     ELSE NULL
+                     END AS FavSourceBin7,
+                     CASE
+                     WHEN FavSource30 = 1 THEN SOURCE_OF_PURCHASE
+                     ELSE NULL
+                     END AS FavSourceBin30,
+                     CASE
+                     WHEN FavSource90 = 1 THEN SOURCE_OF_PURCHASE
+                     ELSE NULL
+                     END AS FavSourceBin90,
+                     CASE
+                     WHEN FavSource180 = 1 THEN SOURCE_OF_PURCHASE
+                     ELSE NULL
+                     END AS FavSourceBin180,
+                     CASE
+                     WHEN FavSource360 = 1 THEN SOURCE_OF_PURCHASE
+                     ELSE NULL
+                     END AS FavSourceBin360
+                     FROM FavSource")
+
+FavouriteSourceBin <- sqldf("SELECT CONTACT_WID,
+                            max(FavSourceBin) as FavouriteSource,
+                            max(FavSourceBin7) as FavouriteSource7,
+                            max(FavSourceBin30) as FavouriteSource30,
+                            max(FavSourceBin90) as FavouriteSource90,
+                            max(FavSourceBin180) as FavouriteSource180,
+                            max(FavSourceBin360) as FavouriteSource360
+                            FROM FavSource1 GROUP BY CONTACT_WID")
+
+
+
+PurAppChannel <- sqldf("SELECT CONTACT_WID, CHANNEL_DESCRIPTION,SUM(CASE
+                     WHEN CHANNEL_DESCRIPTION NOTNULL THEN 1
+                     ELSE 0
+                     END) AS CHANNEL,
+                     SUM(CASE 
+                     WHEN (TRANSACTION_DATE < '2012-01-02' AND CHANNEL_DESCRIPTION NOTNULL) THEN 1
+                     ELSE 0
+                     END) AS CHANNEL7,
+                     SUM(CASE 
+                     WHEN (TRANSACTION_DATE < '2012-01-26' AND CHANNEL_DESCRIPTION NOTNULL)  THEN 1
+                     ELSE 0
+                     END) AS CHANNEL30,
+                     SUM(CASE 
+                     WHEN (TRANSACTION_DATE < '2012-03-26' AND CHANNEL_DESCRIPTION NOTNULL) THEN 1
+                     ELSE 0
+                     END) AS CHANNEL90,
+                     SUM(CASE 
+                     WHEN (TRANSACTION_DATE < '2012-06-23' AND CHANNEL_DESCRIPTION NOTNULL) THEN 1
+                     ELSE 0
+                     END) AS CHANNEL180,
+                     SUM(CASE 
+                     WHEN (TRANSACTION_DATE < '2012-12-26' AND CHANNEL_DESCRIPTION NOTNULL)  THEN 1
+                     ELSE 0
+                     END) AS CHANNEL360
+                     FROM data6
+                     group by CONTACT_WID, CHANNEL_DESCRIPTION")
+
+FavChannel <- sqldf("SELECT a.CONTACT_WID, a.CHANNEL_DESCRIPTION,
+                       CASE 
+                       WHEN CHANNEL > 0.5 * b.CHANNEL_DESCRIPTION THEN 1
+                       ELSE NULL
+                       END AS favChannel,
+                       CASE 
+                       WHEN CHANNEL7 > 0.5 * b.CHANNEL_DESCRIPTION7 THEN 1
+                       ELSE NULL
+                       END AS favChannel7,
+                       CASE 
+                       WHEN CHANNEL30 > 0.5 * b.CHANNEL_DESCRIPTION30 THEN 1
+                       ELSE NULL
+                       END AS favChannel30,
+                       CASE 
+                       WHEN CHANNEL90 > 0.5 * b.CHANNEL_DESCRIPTION90 THEN 1
+                       ELSE NULL
+                       END AS favChannel90,
+                       CASE 
+                       WHEN CHANNEL180 > 0.5 * b.CHANNEL_DESCRIPTION180 THEN 1
+                       ELSE NULL
+                       END AS favChannel180,
+                       CASE 
+                       WHEN CHANNEL360 > 0.5 * b.CHANNEL_DESCRIPTION360 THEN 1
+                       ELSE NULL
+                       END AS favChannel360
+                       FROM PurAppChannel a
+                       LEFT JOIN custPurcApp b on a.CONTACT_WID = b.CONTACT_WID
+                       ")
+
+
+
+FavChannel1 <- sqldf("SELECT CONTACT_WID,
+                      CASE 
+                      WHEN favChannel = 1 THEN CHANNEL_DESCRIPTION
+                      ELSE NULL
+                      END AS favouriteChannel,
+                      CASE 
+                      WHEN favChannel7 = 1 THEN CHANNEL_DESCRIPTION
+                      ELSE NULL
+                      END AS favouriteChannel7,
+                      CASE 
+                      WHEN favChannel30 = 1 THEN CHANNEL_DESCRIPTION
+                      ELSE NULL
+                      END AS favouriteChannel30,
+                      CASE 
+                      WHEN favChannel90 = 1 THEN CHANNEL_DESCRIPTION
+                      ELSE NULL
+                      END AS favouriteChannel90,
+                      CASE 
+                      WHEN favChannel180 = 1 THEN CHANNEL_DESCRIPTION
+                      ELSE NULL
+                      END AS favouriteChannel180,
+                      CASE 
+                      WHEN favChannel360 = 1 THEN CHANNEL_DESCRIPTION
+                      ELSE NULL
+                      END AS favouriteChannel360
+                      FROM FavChannel")
+
+favouriteChannelBin <- sqldf("SELECT CONTACT_WID, max(favouriteChannel) as FavouriteChannel,
+                             max(favouriteChannel7) as FavouriteChannel7,
+                             max(favouriteChannel30) as FavouriteChannel30,
+                             max(favouriteChannel90) as FavouriteChannel90,
+                             max(favouriteChannel180) as FavouriteChannel180,
+                             max(favouriteChannel360) as FavouriteChannel360
+                             FROM FavChannel1 GROUP BY CONTACT_WID")
+
 
 
 ##########################################################################################################
@@ -702,7 +934,7 @@ recencyCum <- sqldf("SELECT CONTACT_WID, OveralllastTransaction,
 ###Final dataset after merge
 
 hopmonkClv = sqldf("SELECT
-custOwner.CONTACT_WID AS CONTACT_WID,
+                    custOwner.CONTACT_WID AS CONTACT_WID,
                    custOwner.NominationDate AS NominationDate,
                    Country,
                    MinChildAge,
@@ -792,7 +1024,19 @@ custOwner.CONTACT_WID AS CONTACT_WID,
                    minRecencyCum180,
                    maxRecencyCum180,
                    minRecencyCum360,
-                   maxRecencyCum360
+                   maxRecencyCum360,
+                   FavouriteSource,
+                   FavouriteSource7,
+                   FavouriteSource30,
+                   FavouriteSource90,
+                   FavouriteSource180,
+                   FavouriteSource360,
+                   FavouriteChannel,
+                   FavouriteChannel7,
+                   FavouriteChannel30,
+                   FavouriteChannel90,
+                   FavouriteChannel180,
+                   FavouriteChannel360
                    FROM custOwner 
                    LEFT JOIN custChild on custOwner.CONTACT_WID = custChild.CONTACT_WID
                    LEFT JOIN custPurcApp on  custOwner.CONTACT_WID = custPurcApp.CONTACT_WID
@@ -803,9 +1047,14 @@ custOwner.CONTACT_WID AS CONTACT_WID,
                    LEFT JOIN favoriteGameBin on custOwner.CONTACT_WID = favoriteGameBin.CONTACT_WID
                    LEFT JOIN custAppDownload on custOwner.CONTACT_WID = custAppDownload.CONTACT_WID
                    LEFT JOIN recencyCum on custOwner.CONTACT_WID = recencyCum.CONTACT_WID
+                   LEFT JOIN FavouriteSourceBin on custOwner.CONTACT_WID = FavouriteSourceBin.CONTACT_WID
+                   LEFT JOIN favouriteChannelBin on custOwner.CONTACT_WID = favouriteChannelBin.CONTACT_WID
                    ")
-
+#Saving to csv
 write.csv(hopmonkClv, file = "hopmonkClv.csv")
+
+# Saving on object in RData format
+save(hopmonkClv, file = "hopmonkClv.RData")
 #####################################################################################################
 
           
