@@ -113,6 +113,14 @@ rsq
  summary(model)
  anova(model, test="Chisq")
  library(pscl)
+ 
+ #confusion matrix
+table(traindata$DATA, predict > 0.5)
+    ########or
+confusionMatrix(data, reference, positive = NULL,
+                dnn = c("Prediction", "Reference"), prevalence = NULL,
+                mode = "sens_spec", ...)
+
  ####  McFadden R2 index can be used to assess the model fit
  pR2(model)
  
