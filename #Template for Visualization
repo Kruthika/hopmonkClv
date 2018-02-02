@@ -1,0 +1,145 @@
+################## boxplot
+
+boxplot(A~B,data=mtcars, main="", 
+        xlab="B", ylab="A")
+
+
+# Notched Boxplot of Tooth Growth Against 2 Crossed Factors
+# boxes colored for ease of interpretation 
+boxplot(A~B*C, data=ToothGrowth, notch=TRUE, 
+        col=(c("gold","darkgreen")),
+        main="", xlab="")
+
+
+
+#####LINEAR REGRESSION FOR X^2#########
+
+x = as.matrix(data[, 1:])
+x2 = poly(x, degree = 2, raw = TRUE)
+mydata2 = as.data.frame(cbind(x2, y = data$y))
+lm2 = lm(y ~ ., data = mydata2)
+             ##########or########
+  lm(y~x+I(x^2)) 
+       lm(y~poly(x, 2, raw=TRUE)
+       
+
+            
+            
+############LINEAR REGRESSION FOR LOG############
+
+set.seed(10)
+ y <- 1*log(x)-6+rnorm(n)
+             ##### x is our variable 
+ #plot the data
+ plot(y~x)
+ 
+ #fit log model
+ fit <- lm(y~log(x))
+ #Results of the model
+ summary(fit)
+
+Call:
+  lm(formula = y ~ log(x))
+############
+
+
+    ######Two seperate variables
+logm1 <- lm(log(y) ~ log(x), data = dat, subset = 1:7)
+logm2 <- lm(log(y) ~ log(x), data = dat, subset = 8:15)
+
+    #######Using ANCOVA
+
+
+dat <- transform(dat, final = factor(  ))
+logm3 <- lm(log(y) ~ log(x) * final, data = dat)
+
+######### lasso
+
+install.packages("glmnet")
+library(glmnet)
+X <- matrix( c(x1, x2, x3), byrow = F, ncol = 3)
+y <- 3 + 4*x1 + 3*x2 + 5*x3 + rnorm(30)
+fit <-glmnet(x = X, y = y, alpha = 1) 
+plot(fit, xvar = "lambda")
+coef(fit, s = 0.3)
+log(0.3)
+crossval <-  cv.glmnet(x = X, y = y)
+plot(crossval)
+penalty <- crossval$lambda.min #optimal lambda
+penalty #minimal shrinkage
+fit1 <-glmnet(x = X, y = y, alpha = 1, lambda = penalty ) #estimate the model with that
+coef(fit1)
+
+
+
+######### RIDGE
+y <- DATA$VARIABLE
+x <- DATA %>% select(V1, V2, V3) %>% data.matrix()
+lambdas <- 10^seq(3, -2, by = -.1)
+
+fit <- glmnet(x, y, alpha = 0, lambda = lambdas)
+cv_fit <- cv.glmnet(x, y, alpha = 0, lambda = lambdas)
+
+summary(fit)
+opt_lambda <- cv_fit$lambda.min
+fit <- cv_fit$glmnet.fit
+summary(fit)
+
+y_predicted <- predict(fit, s = opt_lambda, newx = x)
+# Sum of Squares Total and Error
+sst <- sum((y - mean(y))^2)
+sse <- sum((y_predicted - y)^2)
+
+# R squared
+rsq <- 1 - sse / sst
+rsq
+
+
+########PCA
+ modelname<-princomp(dataset)
+ summary(modelname)
+ modelname$loadings
+ modelname$scores
+ 
+ 
+ ######A visual take on the missing values might be helpful: the Amelia package has a special plotting function missmap() that will plot your dataset and highlight missing values:
+ library(Amelia)
+ missmap(training.data.raw, main = "Missing values vs observed")
+ 
+ 
+ #########logistic regression
+ 
+ model <- glm(Survived ~.,family=binomial(link='logit'),data=train)
+ summary(model)
+ anova(model, test="Chisq")
+ library(pscl)
+ ####  McFadden R2 index can be used to assess the model fit
+ pR2(model)
+ 
+ #### Assessing the predictive ability of the model
+ fitted.results <- predict(model,newdata=subset(test,select=c(,,,,,,)),type='response')
+ fitted.results <- ifelse(fitted.results > 0.5,1,0)
+ misClasificError <- mean(fitted.results != test$Survived)
+ print(paste('Accuracy',1-misClasificError))
+
+####The ROC is a curve
+    #### true positive rate (TPR) against the false positive rate (FPR
+ library(ROCR)
+ p <- predict(model, newdata=subset(test,select=c(,,,,,)), type="response")
+ pr <- prediction(p, test$Survived)
+ prf <- performance(pr, measure = "tpr", x.measure = "fpr")
+ plot(prf)
+ 
+ auc <- performance(pr, measure = "auc")
+ auc <- auc@y.values[[1]]
+ auc
+
+
+ 
+ ######## Naive bayes
+ library(mlbench)
+ library(e1071)
+ data("")
+ model <- naiveBayes(Class ~ ., data = )
+ 
+ 
