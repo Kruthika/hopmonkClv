@@ -187,27 +187,27 @@ custPurcApp <- sqldf("select CONTACT_WID, MAX(TRANSACTION_DATE) AS OveralllastTr
                      END) AS RecencyApp,
                      MAX(CASE
                      WHEN TRANSACTION_DATE < '2012-01-02' AND TRANSACTION_DATE NOTNULL THEN
-                     abs(julianday(TRANSACTION_DATE) - julianday('2012-01-01')) 
+                     abs(julianday(TRANSACTION_DATE) - julianday('2012-01-02')) 
                      ELSE 0 
                      END) AS RecencyApp7,
                      MAX(CASE
                      WHEN TRANSACTION_DATE < '2012-01-26' AND TRANSACTION_DATE NOTNULL THEN
-                     abs(julianday(TRANSACTION_DATE) - julianday('2012-01-25')) 
+                     abs(julianday(TRANSACTION_DATE) - julianday('2012-01-26')) 
                      ELSE 0 
                      END) AS RecencyApp30,
                      MAX(CASE
                      WHEN TRANSACTION_DATE < '2012-03-23' AND TRANSACTION_DATE NOTNULL THEN
-                     abs(julianday(TRANSACTION_DATE) - julianday('2012-03-22')) 
+                     abs(julianday(TRANSACTION_DATE) - julianday('2012-03-23')) 
                      ELSE 0 
                      END) AS RecencyApp90,
                      MAX(CASE
                      WHEN TRANSACTION_DATE < '2012-06-23' AND TRANSACTION_DATE NOTNULL THEN
-                     abs(julianday(TRANSACTION_DATE) - julianday('2012-06-22')) 
+                     abs(julianday(TRANSACTION_DATE) - julianday('2012-06-23')) 
                      ELSE 0 
                      END) AS RecencyApp180,
                      MAX(CASE
                      WHEN TRANSACTION_DATE < '2012-12-26' AND TRANSACTION_DATE NOTNULL THEN
-                     abs(julianday(TRANSACTION_DATE) - julianday('2012-12-25')) 
+                     abs(julianday(TRANSACTION_DATE) - julianday('2012-12-26')) 
                      ELSE 0 
                      END) AS RecencyApp360,
                      SUM(CASE
@@ -543,27 +543,27 @@ custPurcLf <- sqldf("select CONTACT_WID, max(TRANSACTION_DT) AS OveralllastTrans
                     END) AS RecencyLF,
                     MAX(CASE
                     WHEN TRANSACTION_DT < '2012-01-02' AND TRANSACTION_DT NOTNULL THEN
-                    abs(julianday(TRANSACTION_DT) - julianday('2012-01-01')) 
+                    abs(julianday(TRANSACTION_DT) - julianday('2012-01-02')) 
                     ELSE 0 
                     END) AS RecencyLF7,
                     MAX(CASE
                     WHEN TRANSACTION_DT < '2012-01-26' AND TRANSACTION_DT NOTNULL THEN
-                    abs(julianday(TRANSACTION_DT) - julianday('2012-01-25')) 
+                    abs(julianday(TRANSACTION_DT) - julianday('2012-01-26')) 
                     ELSE 0 
                     END) AS RecencyLF30,
                     MAX(CASE
                     WHEN TRANSACTION_DT < '2012-03-23' AND TRANSACTION_DT NOTNULL THEN
-                    abs(julianday(TRANSACTION_DT) - julianday('2012-03-22')) 
+                    abs(julianday(TRANSACTION_DT) - julianday('2012-03-23')) 
                     ELSE 0 
                     END) AS RecencyLF90,
                     MAX(CASE
                     WHEN TRANSACTION_DT < '2012-06-23' AND TRANSACTION_DT NOTNULL THEN
-                    abs(julianday(TRANSACTION_DT) - julianday('2012-06-22')) 
+                    abs(julianday(TRANSACTION_DT) - julianday('2012-06-23')) 
                     ELSE 0 
                     END) AS RecencyLF180,
                     MAX(CASE
                     WHEN TRANSACTION_DT < '2012-12-26' AND TRANSACTION_DT NOTNULL THEN
-                    abs(julianday(TRANSACTION_DT) - julianday('2012-12-25')) 
+                    abs(julianday(TRANSACTION_DT) - julianday('2012-12-26')) 
                     ELSE 0 
                     END) AS RecencyLF360
                     FROM data7
@@ -909,27 +909,27 @@ custAppDownload <- sqldf("SELECT CONTACT_WID, MAX(NOMIN_DT) AS OveralllastDate,
                          END) AS Recencydown,
                          MAX(CASE
                          WHEN NOMIN_DT < '2012-01-02' AND NOMIN_DT NOTNULL THEN
-                         abs(julianday(NOMIN_DT) - julianday('2012-01-01')) 
+                         abs(julianday(NOMIN_DT) - julianday('2012-01-02')) 
                          ELSE 0 
                          END) AS Recencydown7,
                          MAX(CASE
                          WHEN NOMIN_DT < '2012-01-26' AND NOMIN_DT NOTNULL THEN
-                         abs(julianday(NOMIN_DT) - julianday('2012-01-25')) 
+                         abs(julianday(NOMIN_DT) - julianday('2012-01-26')) 
                          ELSE 0 
                          END) AS Recencydown30,
                          MAX(CASE
                          WHEN NOMIN_DT < '2012-03-23' AND NOMIN_DT NOTNULL THEN
-                         abs(julianday(NOMIN_DT) - julianday('2012-03-22')) 
+                         abs(julianday(NOMIN_DT) - julianday('2012-03-23')) 
                          ELSE 0 
                          END) AS Recencydown90,
                          MAX(CASE
                          WHEN NOMIN_DT < '2012-06-23' AND NOMIN_DT NOTNULL THEN
-                         abs(julianday(NOMIN_DT) - julianday('2012-06-22')) 
+                         abs(julianday(NOMIN_DT) - julianday('2012-06-23')) 
                          ELSE 0 
                          END) AS Recencydown180,
                          MAX(CASE
                          WHEN NOMIN_DT < '2012-12-26' AND NOMIN_DT NOTNULL THEN
-                         abs(julianday(NOMIN_DT) - julianday('2012-12-25')) 
+                         abs(julianday(NOMIN_DT) - julianday('2012-12-26')) 
                          ELSE 0 
                          END) AS Recencydown360
                          FROM data2
