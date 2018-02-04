@@ -10,104 +10,21 @@ dim(hopmonkClv)
 str(hopmonkClv)
 summary(hopmonkClv)
 
-#Dropping the columns that are not required
-requiredData <- subset(hopmonkClv, select = -c(X,CONTACT_WID,NominationDate,OveralllastTransaction))
-str(requiredData)
+dataSelection <-  subset(hopmonkClv, select = c(Country,GameStrength,FavouriteSource,MinChildAge,
+                                               MaxChildAge,NumHouseChildren,NumMaleChildrenHousehold,
+                                               NumFemaleChildrenHousehold,NumGamesBought,
+                                               FrequencyApp,RecencyApp,UNITS,TotalRevenueGenerated,FreqGamePlay,
+                                               TotalTimeGamePlay,NumGamesPlayed,Recencydown,minRecencyCum,
+                                               maxRecencyCum,minRecencyCum30))
 
-#Getting numeric data
-NumericData <- subset(requiredData, select = -c(Country,GameStrength,FavoriteGameBin,FavoriteGameBin7,FavoriteGameBin30,
-                                                FavoriteGameBin90,FavoriteGameBin180,FavoriteGameBin360,
-                                                FavouriteSource,FavouriteSource7,FavouriteSource30,FavouriteSource90,
-                                                FavouriteSource180,FavouriteSource360,FavouriteChannel,FavouriteChannel7,
-                                                FavouriteChannel30,FavouriteChannel90,FavouriteChannel180,FavouriteChannel360))
-CategoricalData<- subset(requiredData, select = c(Country,GameStrength,FavoriteGameBin,FavoriteGameBin7,FavoriteGameBin30,
-                                                   FavoriteGameBin90,FavoriteGameBin180,FavoriteGameBin360,
-                                                   FavouriteSource,FavouriteSource7,FavouriteSource30,FavouriteSource90,
-                                                   FavouriteSource180,FavouriteSource360,FavouriteChannel,FavouriteChannel7,
-                                                   FavouriteChannel30,FavouriteChannel90,FavouriteChannel180,FavouriteChannel360))
+summary(dataSelection) 
 
 
-#install.packages("outliers")
-library(outliers)
-###Splitting data into 2 sets to remove outliers
-LowMediumData = NumericData[NumericData$TotalRevenueGenerated < 80 & NumericData$TotalRevenueGenerated > 0,]
-HighRevenueGenerating = NumericData[NumericData$TotalRevenueGenerated > 80 & NumericData$TotalRevenueGenerated < 245,]
-head(HighRevenueGenerating)
-
-###For HighRevenueGenrating Data
-count = 0
-for (i in names(HighRevenueGenerating)) {
-  percentOfZero = nrow(HighRevenueGenerating[HighRevenueGenerating[[i]] == 0,])*100/nrow(HighRevenueGenerating)
-  if(percentOfZero < 20) {
-    print(paste(i," has lesser than ", percentOfZero, " zeros. More information"))
-    count = count + 1
-  }
-}
-print(paste("Number of columns with higher information - ", count))
-
-meanHigh <- mean(HighRevenueGenerating$TotalRevenueGenerated)
-meanHigh
-medianHigh <- median(HighRevenueGenerating$TotalRevenueGenerated)
-medianHigh
-hist(HighRevenueGenerating$TotalRevenueGenerated)
-boxplot(HighRevenueGenerating$TotalRevenueGenerated, horizontal=TRUE)
-summary(HighRevenueGenerating)
-
-#Standardize the data
-library(vegan)
-range <- decostand((HighRevenueGenerating), "standardize")
 
 
-#Getting Basic stats
-count = 0;
-for (i in names(range)) {
-  mean <- mean(range[[ i ]] )
-  median <- median(range[[ i ]] )
-  std_dev <- sd(range[[ i ]]) 
-  # diff = abs(mean - median)
-  # print(diff)
-  z = scores(range[[ i ]])
-  
-   if (z > 3 | z < - 3 ) {
-    print(i)
-    print(paste("Mean - ", mean))
-    print(paste("Median - ", median))
-    print(paste("Standard deviation - ", std_dev))
-    count = count + 1
-  }
-  
-  library(e1071)
-  skewness <- skewness(range[[ i ]])
-  kurtosis <- kurtosis(range[[ i ]]) 
-  
-  if(abs(kurtosis) < 1.96 | abs(skewness) < 1.96) {
-    print(i)
-    print(paste("Skewness - ", skewness))
-    print(paste("Kurtosis - ", kurtosis))
-    hist(range[[ i ]],xlab= i, main=i)
-    boxplot(range[[ i ]], horizontal=TRUE,xlab= i, main=i)
-    
-  }
-}
+LowData = dataSelection[dataSelection$TotalRevenueGenerated > 0 & dataSelection$TotalRevenueGenerated < 24,]
+library(Mass)
 
-#Finding out outliers using quartiles and interquartiles
-out <- outlier(NumericData, logical=TRUE)
-# Actual outlier values
-outliers = which(out[,], TRUE)
-
-lowMediumMedian <- median(LowMediumData$TotalRevenueGenerated)
-lowMediumMedian
-
-#Further splitting data 
-LowData <- LowMediumData[LowMediumData$TotalRevenueGenerated < 24,]
-meanLow = mean(LowData$TotalRevenueGenerated)
-meanLow
-medianLow = median(LowData$TotalRevenueGenerated)
-medianLow
-hist(LowData$TotalRevenueGenerated)
-boxplot(LowData$TotalRevenueGenerated, horizontal=TRUE)
-
-#Check for all the columns that have more than 22% of 0s
 count = 0
 for (i in names(LowData)) {
   percentOfZero = nrow(LowData[LowData[[i]] == 0,])*100/nrow(LowData)
@@ -119,19 +36,124 @@ for (i in names(LowData)) {
 print(paste("Number of columns with higher information - ", count))
 
 
+numeric_Variables = subset(LowData, select = c(MinChildAge,MaxChildAge,NumHouseChildren,NumGamesBought,
+                                                  FrequencyApp,RecencyApp,UNITS,
+                                                  Recencydown,minRecencyCum,
+                                                  maxRecencyCum,minRecencyCum30)) 
+cat_variables = subset(LowData, select = c(Country,GameStrength,FavouriteSource))
+numeric <- decostand(na.omit(numeric_Variables), "standardize")
+target_variable = subset(LowData,select="TotalRevenueGenerated")
+catDummies <- model.matrix(target_variable$TotalRevenueGenerated ~ cat_variables$FavouriteSource + cat_variables$GameStrength
+                           +cat_variables$Country)[,-1]
 
-MediumData <- LowMediumData[LowMediumData$TotalRevenueGenerated > 24,]
-meanMedium <- mean(MediumData$TotalRevenueGenerated)
-meanMedium
-medianMedium <- median(MediumData$TotalRevenueGenerated)
-medianMedium
-hist(MediumData$TotalRevenueGenerated)
-boxplot(MediumData$TotalRevenueGenerated, horizontal=TRUE)
+#LinReg<-lm(TotalRevenueGenerated~.,data = LowData)
+#Step <- stepAIC(LinReg, direction="both")
 
-#Check for all the columns that have more than 22% of 0s
+data =  as.matrix(data.frame(numeric, catDummies))
+#Split the data into train and test data sets
+rows=seq(1,nrow(data),1)
+set.seed(123)
+trainRows=sample(rows,(70*nrow(data))/100)
+
+
+train = data[trainRows,] 
+test = data[-trainRows,]
+
+#Target Variable
+y=target_variable$TotalRevenueGenerated[trainRows]
+ytest = target_variable$TotalRevenueGenerated[-trainRows]
+
+library(glmnet)
+######################################################
+# fit model
+fit1=glmnet(train,y,alpha=1)  #LASSO
+plot(fit1,xvar="lambda",label=TRUE)
+
+fit2=glmnet(train,y,alpha=0)  #Ridge
+plot(fit2,xvar="lambda",label=TRUE)
+
+#######################################################
+#cv.glmnet will help you choose lambda
+cv <- cv.glmnet(train,y)  #By default alpha=1
+
+#lambda.min - value of lambda that gives minimum cvm - mean cross-validated error
+
+#######################################################
+# LASSO Regression  using glmnet - L1 norm
+fit1=glmnet(train,y,lambda=cv$lambda.min,alpha=1)
+predict(fit1,train)
+library(DMwR)
+LASSOtrain = regr.eval(y, predict(fit1,train))
+LASSOtest = regr.eval(ytest, predict(fit1,test))
+LASSOtrain
+LASSOtest
+
+
+#Model Selection
+coef(fit1)
+cv.lasso=cv.glmnet(train,y)
+plot(cv.lasso)
+coef(cv.lasso)
+
+#############################################################################
+# Ridge Regression  using glmnet  - L2 norm
+library(glmnet)
+# fit model
+fit2=glmnet(train,y,lambda=cv$lambda.min,alpha=0)
+predict(fit2,train)
+
+RIDGEtrain = regr.eval(y, predict(fit2,train))
+RIDGEtest = regr.eval(ytest, predict(fit2,test))
+RIDGEtrain
+RIDGEtest
+#Model Selection
+coef(fit2) 
+cv.ridge=cv.glmnet(train,y,alpha=0)
+plot(cv.ridge)
+coef(cv.ridge)
+
+#cvfit = cv.glmnet(train,y,alpha=0, type.measure = "mae")
+################################################################
+# Elastic regression
+fit3=glmnet(train,y,lambda=cv$lambda.min,alpha=0.5)
+# summarize the fit
+summary(fit3)
+predict(fit3,train)
+
+Elastictrain = regr.eval(y, predict(fit3,train))
+Elastictest = regr.eval(ytest, predict(fit3,test))
+Elastictrain
+Elastictest
+
+# make predictions
+predictions <- predict(fit3, train, type="link")
+# summarize accuracy
+rmse <- mean((y - predictions)^2)
+print(rmse)
+
+#################################################
+
+LASSOtrain
+LASSOtest
+RIDGEtrain
+RIDGEtest
+Elastictrain
+Elastictest
+
+finalerrors <- data.frame(rbind(
+  LASSOtrain,LASSOtest,
+  RIDGEtrain,RIDGEtest,
+  Elastictrain,Elastictest))
+finalerrors
+
+
+##################################################
+
+HighRevenueGenerating = dataSelection[dataSelection$TotalRevenueGenerated > 80 & dataSelection$TotalRevenueGenerated < 245,]
+
 count = 0
-for (i in names(MediumData)) {
-  percentOfZero = nrow(MediumData[MediumData[[i]] == 0,])*100/nrow(MediumData)
+for (i in names(HighRevenueGenerating)) {
+  percentOfZero = nrow(HighRevenueGenerating[HighRevenueGenerating[[i]] == 0,])*100/nrow(HighRevenueGenerating)
   if(percentOfZero < 22) {
     print(paste(i," has lesser than ", percentOfZero, " zeros. More information"))
     count = count + 1
@@ -140,10 +162,238 @@ for (i in names(MediumData)) {
 print(paste("Number of columns with higher information - ", count))
 
 
+numeric_Variables = subset(HighRevenueGenerating, select = c(MinChildAge,MaxChildAge,NumHouseChildren,NumGamesBought,
+                                               FrequencyApp,RecencyApp,UNITS,
+                                               Recencydown,minRecencyCum, FreqGamePlay,TotalTimeGamePlay,NumGamesPlayed,
+                                               maxRecencyCum)) 
+cat_variables = subset(HighRevenueGenerating, select = c(Country,GameStrength,FavouriteSource))
+numeric <- decostand(na.omit(numeric_Variables), "standardize")
+target_variable = subset(HighRevenueGenerating,select="TotalRevenueGenerated")
+catDummies <- model.matrix(target_variable$TotalRevenueGenerated ~ cat_variables$FavouriteSource + cat_variables$GameStrength
+                           +cat_variables$Country)[,-1]
+
+#LinReg<-lm(TotalRevenueGenerated~.,data = HighRevenueGenerating)
+#Step <- stepAIC(LinReg, direction="both")
+
+data =  as.matrix(data.frame(numeric, catDummies))
+#Split the data into train and test data sets
+rows=seq(1,nrow(data),1)
+set.seed(123)
+trainRows=sample(rows,(70*nrow(data))/100)
 
 
+train = data[trainRows,] 
+test = data[-trainRows,]
+
+#Target Variable
+y=target_variable$TotalRevenueGenerated[trainRows]
+ytest = target_variable$TotalRevenueGenerated[-trainRows]
+
+library(glmnet)
+######################################################
+# fit model
+fit1=glmnet(train,y,alpha=1)  #LASSO
+plot(fit1,xvar="lambda",label=TRUE)
+
+fit2=glmnet(train,y,alpha=0)  #Ridge
+plot(fit2,xvar="lambda",label=TRUE)
+
+#######################################################
+#cv.glmnet will help you choose lambda
+cv <- cv.glmnet(train,y)  #By default alpha=1
+
+#lambda.min - value of lambda that gives minimum cvm - mean cross-validated error
+
+#######################################################
+# LASSO Regression  using glmnet - L1 norm
+fit1=glmnet(train,y,lambda=cv$lambda.min,alpha=1)
+predict(fit1,train)
+library(DMwR)
+LASSOtrain = regr.eval(y, predict(fit1,train))
+LASSOtest = regr.eval(ytest, predict(fit1,test))
+LASSOtrain
+LASSOtest
 
 
+#Model Selection
+coef(fit1)
+cv.lasso=cv.glmnet(train,y)
+plot(cv.lasso)
+coef(cv.lasso)
+
+#############################################################################
+# Ridge Regression  using glmnet  - L2 norm
+library(glmnet)
+# fit model
+fit2=glmnet(train,y,lambda=cv$lambda.min,alpha=0)
+predict(fit2,train)
+
+RIDGEtrain = regr.eval(y, predict(fit2,train))
+RIDGEtest = regr.eval(ytest, predict(fit2,test))
+RIDGEtrain
+RIDGEtest
+#Model Selection
+coef(fit2) 
+cv.ridge=cv.glmnet(train,y,alpha=0)
+plot(cv.ridge)
+coef(cv.ridge)
+
+#cvfit = cv.glmnet(train,y,alpha=0, type.measure = "mae")
+################################################################
+# Elastic regression
+fit3=glmnet(train,y,lambda=cv$lambda.min,alpha=0.5)
+# summarize the fit
+summary(fit3)
+predict(fit3,train)
+
+Elastictrain = regr.eval(y, predict(fit3,train))
+Elastictest = regr.eval(ytest, predict(fit3,test))
+Elastictrain
+Elastictest
+
+# make predictions
+predictions <- predict(fit3, train, type="link")
+# summarize accuracy
+rmse <- mean((y - predictions)^2)
+print(rmse)
+
+#################################################
+
+LASSOtrain
+LASSOtest
+RIDGEtrain
+RIDGEtest
+Elastictrain
+Elastictest
+
+finalerrors <- data.frame(rbind(
+  LASSOtrain,LASSOtest,
+  RIDGEtrain,RIDGEtest,
+  Elastictrain,Elastictest))
+finalerrors
+
+#####################################################
+MediumData <- dataSelection[dataSelection$TotalRevenueGenerated > 24 & dataSelection$TotalRevenueGenerated < 80,]
+
+count = 0
+for (i in names(MediumData)) {
+  percentOfZero = nrow(MediumData[LowData[[i]] == 0,])*100/nrow(MediumData)
+  if(percentOfZero < 22) {
+    print(paste(i," has lesser than ", percentOfZero, " zeros. More information"))
+    count = count + 1
+  }
+}
+print(paste("Number of columns with higher information - ", count))
+
+
+numeric_Variables = subset(MediumData, select = c(MaxChildAge,NumHouseChildren,NumGamesBought,NumMaleChildrenHousehold,
+                                               FrequencyApp,RecencyApp,UNITS,TotalTimeGamePlay,
+                                               Recencydown,minRecencyCum,NumGamesPlayed,FreqGamePlay,
+                                               maxRecencyCum,minRecencyCum30)) 
+cat_variables = subset(MediumData, select = c(Country,GameStrength,FavouriteSource))
+numeric <- decostand(na.omit(numeric_Variables), "standardize")
+target_variable = subset(MediumData,select="TotalRevenueGenerated")
+catDummies <- model.matrix(target_variable$TotalRevenueGenerated ~ cat_variables$FavouriteSource + cat_variables$GameStrength
+                           +cat_variables$Country)[,-1]
+#LinReg<-lm(TotalRevenueGenerated~.,data = MediumData)
+#Step <- stepAIC(LinReg, direction="both")
+
+data =  as.matrix(data.frame(numeric, catDummies))
+#Split the data into train and test data sets
+rows=seq(1,nrow(data),1)
+set.seed(123)
+trainRows=sample(rows,(70*nrow(data))/100)
+
+
+train = data[trainRows,] 
+test = data[-trainRows,]
+
+#Target Variable
+y=target_variable$TotalRevenueGenerated[trainRows]
+ytest = target_variable$TotalRevenueGenerated[-trainRows]
+
+library(glmnet)
+######################################################
+# fit model
+fit1=glmnet(train,y,alpha=1)  #LASSO
+plot(fit1,xvar="lambda",label=TRUE)
+
+fit2=glmnet(train,y,alpha=0)  #Ridge
+plot(fit2,xvar="lambda",label=TRUE)
+
+#######################################################
+#cv.glmnet will help you choose lambda
+cv <- cv.glmnet(train,y)  #By default alpha=1
+
+#lambda.min - value of lambda that gives minimum cvm - mean cross-validated error
+
+#######################################################
+# LASSO Regression  using glmnet - L1 norm
+fit1=glmnet(train,y,lambda=cv$lambda.min,alpha=1)
+predict(fit1,train)
+library(DMwR)
+LASSOtrain = regr.eval(y, predict(fit1,train))
+LASSOtest = regr.eval(ytest, predict(fit1,test))
+LASSOtrain
+LASSOtest
+
+
+#Model Selection
+coef(fit1)
+cv.lasso=cv.glmnet(train,y)
+plot(cv.lasso)
+coef(cv.lasso)
+
+#############################################################################
+# Ridge Regression  using glmnet  - L2 norm
+library(glmnet)
+# fit model
+fit2=glmnet(train,y,lambda=cv$lambda.min,alpha=0)
+predict(fit2,train)
+
+RIDGEtrain = regr.eval(y, predict(fit2,train))
+RIDGEtest = regr.eval(ytest, predict(fit2,test))
+RIDGEtrain
+RIDGEtest
+#Model Selection
+coef(fit2) 
+cv.ridge=cv.glmnet(train,y,alpha=0)
+plot(cv.ridge)
+coef(cv.ridge)
+
+#cvfit = cv.glmnet(train,y,alpha=0, type.measure = "mae")
+################################################################
+# Elastic regression
+fit3=glmnet(train,y,lambda=cv$lambda.min,alpha=0.5)
+# summarize the fit
+summary(fit3)
+predict(fit3,train)
+
+Elastictrain = regr.eval(y, predict(fit3,train))
+Elastictest = regr.eval(ytest, predict(fit3,test))
+Elastictrain
+Elastictest
+
+# make predictions
+predictions <- predict(fit3, train, type="link")
+# summarize accuracy
+rmse <- mean((y - predictions)^2)
+print(rmse)
+
+#################################################
+
+LASSOtrain
+LASSOtest
+RIDGEtrain
+RIDGEtest
+Elastictrain
+Elastictest
+
+finalerrors <- data.frame(rbind(
+  LASSOtrain,LASSOtest,
+  RIDGEtrain,RIDGEtest,
+  Elastictrain,Elastictest))
+finalerrors
 
 
 
