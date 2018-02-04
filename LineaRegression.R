@@ -1223,27 +1223,13 @@ train_a = subset(hopmonkClvM, sample == TRUE)
 test_a  = subset(hopmonkClvM, sample == FALSE)
 names(train)
 
-#train with numeric train_n
 
-
-
-
-
-
-
-
-train_nS <- decostand(train_a,method = "standard")
-names(train_nS)
-
-#### numeric test
-
-test_nS <- decostand(test_a,method = "standard")
 
 
 
 
 #linear model
-LinReg1 = lm(TotalRevenueGenerated~.,data = train_nS)
+LinReg1 = lm(TotalRevenueGenerated~.,data = train_a)
 par(mfrow=c(2,2))
 plot(LinReg1)
 par(mfrow=c(1,1))
@@ -1266,9 +1252,9 @@ par(mfrow = c(2,2))
 plot(LinReg1,which=4)
 par(mfrow=c(1,1))
 hist(LinReg1$residuals)
-target<-test_nS$TotalRevenueGenerated
+target<-test_aS$TotalRevenueGenerated
 
-pred<-data.frame(predict(LinReg1,test_nS))
+pred<-data.frame(predict(LinReg1,test_a))
 resd<-resid(LinReg1)
 #Error metrics evaluation on train data and test data
 library(DMwR)
@@ -1276,7 +1262,7 @@ require(DMwR)
 #Error verification on train data
 regr.eval(train_nS$TotalRevenueGenerated, LinReg1$fitted.values)
 #Error verification on test data
-Pred<- regr.eval(test_nS$TotalRevenueGenerated, pred)
+Pred<- regr.eval(test_a$TotalRevenueGenerated, pred)
 Pred
 
 
