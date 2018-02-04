@@ -1,0 +1,275 @@
+library(vegan)
+#hopmonkClv$NominationDate
+
+hopmonkClvM<- subset(hopmonkClv, select=-c(CONTACT_WID,OveralllastTransaction,NominationDate ))
+
+##### sampling the data
+library(vegan)
+
+install.packages('caTools')
+library(caTools)
+set.seed(88)
+
+sample <- sample.split(hopmonkClvM, SplitRatio = 0.70)
+#sample<- subset(train, select=-c())
+
+
+#get training and test data
+#sample = sample.split(data$anycolumn, SplitRatio = .75)
+train_a = subset(hopmonkClvM, sample == TRUE)
+test_a  = subset(hopmonkClvM, sample == FALSE)
+names(train)
+
+#train with numeric train_n
+train_n<- subset(train_a, select=-c(Country,
+                                  GameStrength,FavouriteSource, FavouriteSource7,FavouriteSource30,
+                                  FavouriteSource90,FavouriteSource180,FavouriteSource360,FavouriteChannel,FavouriteChannel,
+                                  FavouriteChannel7,FavouriteChannel30,FavouriteChannel90,
+                                  FavouriteChannel180,FavouriteChannel360,FavoriteGameBin,
+                                  FavoriteGameBin7,FavoriteGameBin30,FavoriteGameBin90,
+                                  FavoriteGameBin180, FavoriteGameBin360))
+
+
+
+
+
+
+
+
+train_nS <- decostand(train_n,method = "standard")
+
+
+#### numeric test
+test_n<- subset(test_a, select=-c(
+                                  Country,
+                                  GameStrength,FavouriteSource, FavouriteSource7,FavouriteSource30,
+                                  FavouriteSource90,FavouriteSource180,FavouriteSource360,FavouriteChannel,FavouriteChannel,
+                                  FavouriteChannel7,FavouriteChannel30,FavouriteChannel90,
+                                  FavouriteChannel180,FavouriteChannel360,FavoriteGameBin,
+                                  FavoriteGameBin7,FavoriteGameBin30,FavoriteGameBin90,
+                                  FavoriteGameBin180, FavoriteGameBin360))
+test_nS <- decostand(test_n,method = "standard")
+
+
+
+
+#linear model
+LinReg1 = lm(TotalRevenueGenerated~.,data = train_nS)
+par(mfrow=c(2,2))
+plot(LinReg1)
+par(mfrow=c(1,1))
+
+#coefficients(linmodel)
+summary(LinReg1)
+#coefficients(linmodel)[1]
+
+names(coefficients(LinReg1))
+#To extract the residuals:
+#linmodel$residuals
+#To extract the train predictions:
+#linmodel$fitted.values
+#______________________
+#plot(test$FrequencyApp,test$TotalRevenueGenerated)
+#abline(train$FrequencyApp,train$TotalRevenueGenerated)
+#Check for validity of linear regression assumptions ------------------##
+  par(mfrow = c(2,2))
+
+  plot(LinReg1,which=4)
+  par(mfrow=c(1,1))
+  hist(LinReg1$residuals)
+   target<-test_n$TotalRevenueGenerated
+  
+
+  
+  pred<-data.frame(predict(LinReg1,test_n))
+  resd<-resid(LinReg1)
+#Error metrics evaluation on train data and test data
+library(DMwR)
+require(DMwR)  
+  #Error verification on train data
+regr.eval(train_n$TotalRevenueGenerated, LinReg1$fitted.values)
+  #Error verification on test data
+Pred<- regr.eval(test_n$TotalRevenueGenerated, pred)
+Pred
+  
+# model (linreg) with significant attributes and 
+# check the model summaries
+LinReg2=lm(TotalRevenueGenerated ~.-NumHouseChildren-ChildAgeRange-NumFemaleChildrenHousehold-FrequencyApp-FrequencyApp7
+          -FrequencyApp30-RecencyApp30-RecencyLF7-RecencyLF90-UNITS7-FreqGamePlay7-FreqGamePlay180-TotalTimeGamePlay7-
+            TotalTimeGamePlay30-TotalTimeGamePlay360-NumGamesPlayed7-NumGamesPlayed180-maxRecencyCum180, data = train_n)
+summary(LinReg2)  
+  
+par(mfrow=c(2,2))
+plot(LinReg)
+plot(LinReg,which=4)
+par(mfrow=c(1,1))
+ hist(LinReg$residuals)  
+
+ #Error verification on train data
+ regr.eval(train_n$TotalRevenueGenerated, LinReg2$fitted.values)
+ #Error verification on test data
+ Pred<- regr.eval(test_n$TotalRevenueGenerated, pred)
+ Pred
+ 
+ 
+### trial to make the model more efficient 
+   
+#LinReg3=lm(TotalRevenueGenerated ~ MinChildAge+FrequencyApp180+FrequencyApp360+FrequencyLF+
+#            FrequencyLF360+UNITS+UNITS180+UNITS360+TenureDays+FreqGamePlay+
+#            Recencydown+Recencydown30+Recencydown90+maxRecencyCum+maxRecencyCum360, data = train_nS)
+#summary(LinReg2)  
+
+#regr.eval(train_nS$TotalRevenueGenerated, LinReg2$fitted.values)
+
+#Pred<- regr.eval(test_nS$TotalRevenueGenerated, pred)
+#Pred
+  
+
+##plots Linreg2
+#par(mfrow=c(2,2))
+#plot(LinReg2)
+#plot(LinReg2,which=4)
+#par(mfrow=c(1,1))
+#hist(LinReg2$residuals)
+
+  
+
+####################################################
+
+####################################################
+#Scaling the data##########################################
+library(vegan)
+str(hopmonkClv)
+hopmonkClvM <- decostand(hopmonkClvM,method = "standard")
+
+dataforscaling<-subset(hopmonkClvM,select=-c(TotalRevenueGenerated))
+data_cat <-subset(hopmonkClvM, select=c(Country,GameStrength,FavouriteSource, FavouriteSource7,FavouriteSource30,
+                             FavouriteSource90,FavouriteSource180,FavouriteSource360,FavouriteChannel,FavouriteChannel,
+                             FavouriteChannel7,FavouriteChannel30,FavouriteChannel90,
+                             FavouriteChannel180,FavouriteChannel360,FavoriteGameBin,
+                             FavoriteGameBin7,FavoriteGameBin30,FavoriteGameBin90,
+                             FavoriteGameBin180, FavoriteGameBin360 ))
+data_num_std <- subset(hopmonkClvM,select=-c(Country,GameStrength,FavouriteSource, FavouriteSource7,FavouriteSource30,
+                                          FavouriteSource90,FavouriteSource180,FavouriteSource360,FavouriteChannel,FavouriteChannel,
+                                          FavouriteChannel7,FavouriteChannel30,FavouriteChannel90,
+                                          FavouriteChannel180,FavouriteChannel360,FavoriteGameBin,
+                                          FavoriteGameBin7,FavoriteGameBin30,FavoriteGameBin90,
+                                          FavoriteGameBin180, FavoriteGameBin360 ))
+
+# Apply standardization. Ensure , you exclude the target variable 
+#during standardization
+
+
+
+#Combine standardized attributes back with the 
+# categorical attributes
+data_std_final <- cbind(data_num_std,data_cat,hopmonkClvM['TotalRevenueGenerated'])
+
+#Split the data into train(70%) and test data sets
+set.seed(88)
+
+sample <- sample.split(hopmonkClvM, SplitRatio = 0.70)
+#sample<- subset(train, select=-c())
+
+
+#get training and test data
+#sample = sample.split(data$anycolumn, SplitRatio = .75)
+train = subset(hopmonkClvM, sample == TRUE)
+test  = subset(hopmonkClvM, sample == FALSE)
+
+
+
+train<- subset(train, select=-c(Country,
+                                  GameStrength,FavouriteSource, FavouriteSource7,FavouriteSource30,
+                                  FavouriteSource90,FavouriteSource180,FavouriteSource360,FavouriteChannel,FavouriteChannel,
+                                  FavouriteChannel7,FavouriteChannel30,FavouriteChannel90,
+                                  FavouriteChannel180,FavouriteChannel360,FavoriteGameBin,
+                                  FavoriteGameBin7,FavoriteGameBin30,FavoriteGameBin90,
+                                  FavoriteGameBin180, FavoriteGameBin360,Recencydown360,Recencydown180))
+
+
+test<- subset(test, select=-c(
+  Country,
+  GameStrength,FavouriteSource, FavouriteSource7,FavouriteSource30,
+  FavouriteSource90,FavouriteSource180,FavouriteSource360,FavouriteChannel,FavouriteChannel,
+  FavouriteChannel7,FavouriteChannel30,FavouriteChannel90,
+  FavouriteChannel180,FavouriteChannel360,FavoriteGameBin,
+  FavoriteGameBin7,FavoriteGameBin30,FavoriteGameBin90,
+  FavoriteGameBin180, FavoriteGameBin360,Recencydown360,Recencydown180  ))
+# Build linear regression with all attributes
+LinReg_std1 <- lm(TotalRevenueGenerated~., data= train)
+summary(LinReg_std1)
+
+target1<-test$TotalRevenueGenerated
+pred1<-data.frame(predict(LinReg_std1,test))
+
+#Error verification on train data
+regr.eval(train$TotalRevenueGenerated, LinReg_std1$fitted.values)
+#Error verification on test data
+Pred<- regr.eval(test$TotalRevenueGenerated, pred1)
+Pred
+
+
+
+# Check for multicollinearity 
+
+# 1. VIF: (check attributes with high VIF value)
+library(car)
+alias( LinReg_std1 )
+vif(LinReg1)
+str(train_nS)
+# remove the highly correlated attributes and 
+LinReg_std2=lm(TotalRevenueGenerated~.-ChildAgeRange-NumFemaleChildrenHousehold-FrequencyApp-Recencydown90-maxRecencyCum-Recencydown-Recencydown30-maxRecencyCum360 , data=train)
+# build the model 
+par(mfrow=c(3,3))
+#scatterplot(train_nS$TotalRevenueGenerated,train_nS$Recencydown90 )
+#scatterplot(train_nS$TotalRevenueGenerated,train_nS$maxRecencyCum )
+#scatterplot(train_nS$TotalRevenueGenerated,train_nS$Recencydown )
+#scatterplot(train_nS$TotalRevenueGenerated,train_nS$Recencydown30 )
+#scatterplot(train_nS$TotalRevenueGenerated,train_nS$maxRecencyCum360 )
+summary(LinReg_std2)
+vif(LinReg_std2)
+
+# 2. Stepwise Regression
+library(MASS)
+Step1 <- stepAIC(LinReg_std1, direction="backward")
+Step2 <- stepAIC(LinReg1, direction="forward")
+Step3 <- stepAIC(LinReg_std1, direction="both")
+summary(Step3)
+
+
+# select the final list of variables
+# and build the model
+Mass_LinReg1 <- lm(TotalRevenueGenerated~.-NumGamesPlayed-NumGamesBought, data = train)
+summary(Mass_LinReg1)
+par(mfrow=c(2,2))
+plot(Mass_LinReg1)
+plot(Mass_LinReg1,which=4)
+par(mfrow=c(1,1))
+head(train)
+
+# Identify the outliers using the cook's distance
+# remove them
+# build model without the influencial points (record #2729) 
+data_ou<-data.frame(which(rownames(train)%in%c(31312,30857,80664)))
+out<-train_nS[56385,]
+
+summary(LinReg_No_infl)
+
+train_rmoutliers <- train_nS[which(train$MinChildAge < 0.02304439 & train_nS$MinChildAge > -1.226349  ), ]
+LinReg_No_infl<-lm(TotalRevenueGenerated~.,data = train_rmoutliers)
+summary(LinReg_No_infl)
+
+par(mfrow=c(2,2))
+plot(LinReg_No_infl)
+plot(LinReg_No_infl,which=4)
+par(mfrow=c(1,1))
+
+
+#Error verification on train data
+regr.eval(train_rmoutliers$TotalRevenueGenerated, LinReg_No_infl$fitted.values) 
+#Error verification on test data
+MASS_Pred1<-predict(LinReg_No_infl,test)
+regr.eval(test$TotalRevenueGenerated, MASS_Pred1)
+
+Error_calc = data.frame(train_rmoutliers$TotalRevenueGenerated,LinReg_No_infl$fitted.values)
